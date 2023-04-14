@@ -8,7 +8,7 @@ export default {
 
     },
     perfil(){
-
+        return http().get("/v1/auth/perfil")
     },
     salir(){
         
