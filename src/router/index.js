@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import Login from '../views/auth/Login.vue'
 import Perfil from "../views/admin/Perfil.vue"
 import Usuario from "../views/admin/Usuario.vue"
+import AppLayout from '@/layout/AppLayout.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,17 +29,26 @@ const router = createRouter({
       meta: {redirectIfAuth: true}
     },
     {
-      path: '/admin/perfil',
-      name: 'Perfil',
-      component: Perfil,
-      meta: {requireAuth: true}
-    },
-    {
-      path: '/admin/usuario',
-      name: 'Usuario',
-      component: Usuario,
-      meta: {requireAuth: true}
+      path: '/admin',
+      name: 'Admin',
+      component: AppLayout, // template 
+      meta: {requireAuth: true},
+      children: [
+        {
+          path: 'perfil',
+          name: 'Perfil',
+          component: Perfil,
+          meta: {requireAuth: true}
+        },
+        {
+          path: 'usuario',
+          name: 'Usuario',
+          component: Usuario,
+          meta: {requireAuth: true}
+        }
+      ]      
     }
+    
   ]
 })
 

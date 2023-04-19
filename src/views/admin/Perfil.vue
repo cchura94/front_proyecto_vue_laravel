@@ -1,12 +1,15 @@
 <template>
-    <div v-if="perfil">
-        <h1>Perfil</h1>
-        <h2>ID: {{ perfil.id }}</h2>
-        <h2>NOMBRE: {{ perfil.name }}</h2>
-        <h2>CORREO: {{ perfil.email }}</h2>
-    </div>
-    <div v-else>
-        <h1>Cargando...</h1>
+    <div class="card">
+        <div v-if="perfil">
+            <h1>Perfil</h1>
+            <h2>ID: {{ perfil.id }}</h2>
+            <h2>NOMBRE: {{ perfil.name }}</h2>
+            <h2>CORREO: {{ perfil.email }}</h2>
+        </div>
+        <div v-else>
+            <h1>Cargando...</h1>
+        </div>
+
     </div>
 </template>
 
