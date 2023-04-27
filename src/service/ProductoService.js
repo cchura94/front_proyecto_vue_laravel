@@ -1,8 +1,8 @@
 import { http } from "./HttpAxios"
 
 export default {
-    listar(){
-        return http().get("/producto");
+    listar(page=1, limit=5){
+        return http().get(`/producto?page=${page}&q=&limit=${limit}`);
     },
     guardar: (datos) => {
         return http().post("/producto", datos);
@@ -15,5 +15,8 @@ export default {
     },
     eliminar: (id) => {
         return http().delete(`/producto/${id}`)
+    },
+    actualizarImagen: (id, formData) => {
+        return http().post(`/producto/${id}/update-image`, formData)
     }
 }

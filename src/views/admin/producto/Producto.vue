@@ -21,6 +21,10 @@
                     v-model:selection="selectedProducts"
                     dataKey="id"
                     :paginator="true"
+                    lazy
+                    :totalRecords="totalRecords"
+                    :loading="loading"
+                    @page="onPage($event)"
                     :rows="10"
                     :filters="filters"
                     paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
@@ -39,13 +43,13 @@
                     </template>
 
                     <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
-                    <Column field="code" header="Code" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                    <Column field="id" header="ID" :sortable="true" headerStyle="width:7%; min-width:3rem;">
                         <template #body="slotProps">
                             <span class="p-column-title">ID</span>
                             {{ slotProps.data.id }}
                         </template>
                     </Column>
-                    <Column field="nombre" header="Nombre" :sortable="true" headerStyle="width:14%; min-width:10rem;">
+                    <Column field="nombre" header="Nombre" :sortable="true" headerStyle="width:14%; min-width:8rem;">
                         <template #body="slotProps">
                             <span class="p-column-title">Nombre</span>
                             {{ slotProps.data.nombre }}
@@ -54,10 +58,11 @@
                     <Column header="imagen" headerStyle="width:14%; min-width:10rem;">
                         <template #body="slotProps">
                             <span class="p-column-title">Imagen</span>
-                            <img :src="'demo/images/product/' + slotProps.data.image" :alt="slotProps.data.image" class="shadow-2" width="100" />
+                            
+                            <img :src="'http://127.0.0.1:8000/' + slotProps.data.imagen" :alt="slotProps.data.nombre" class="shadow-2" width="100" />
                         </template>
                     </Column>
-                    <Column field="precio" header="Precio" :sortable="true" headerStyle="width:14%; min-width:8rem;">
+                    <Column field="precio" header="Precio" :sortable="true" headerStyle="width:14%; min-width:4rem;">
                         <template #body="slotProps">
                             <span class="p-column-title">Precio</span>
                             {{ formatCurrency(slotProps.data.precio) }}
@@ -71,6 +76,7 @@
                     </Column>
                     <Column headerStyle="min-width:10rem;">
                         <template #body="slotProps">
+                            <Button icon="pi pi-image" @click="openNewImagen(slotProps.data)" />
                             <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editProduct(slotProps.data)" />
                             <Button icon="pi pi-trash" class="p-button-rounded p-button-warning mt-2" @click="confirmDeleteProduct(slotProps.data)" />
                         </template>
@@ -78,8 +84,19 @@
                 </DataTable>
   </div>
 
+  
+
+<Dialog v-model:visible="visibleImagen" modal header="Actualizar Imagen" :style="{ width: '50vw' }">
+    
+    <FileUpload name="demo[]" customUpload @uploader="subirActualizacionImagen" :multiple="false" accept="image/*">
+        <template #empty>
+            <p>Arrastre su archvos aquí.</p>
+        </template>
+    </FileUpload>
+</Dialog>
+
    <Dialog v-model:visible="productDialog" :style="{ width: '450px' }" header="Detalles del Producto" :modal="true" class="p-fluid">
-                    {{ product }}
+                    
                     <!--
                     <img :src="'demo/images/product/' + product.image" :alt="product.image" v-if="product.image" width="150" class="mt-0 mx-auto mb-5 block shadow-2" />
                     -->
@@ -96,17 +113,9 @@
                     <div class="field">
                         <label class="mb-3">Categoria</label>
                         <div class="formgrid grid">
-                            <div class="field-radiobutton col-6">
-                                <RadioButton id="category1" name="category" value="1" v-model="product.categoria_id" />
-                                <label for="category1">Accessories</label>
-                            </div>
-                            <div class="field-radiobutton col-6">
-                                <RadioButton id="category2" name="category" value="2" v-model="product.categoria_id" />
-                                <label for="category2">Clothing</label>
-                            </div>
-                            <div class="field-radiobutton col-6">
-                                <RadioButton id="category3" name="category" value="4" v-model="product.categoria_id" />
-                                <label for="category3">Electronics</label>
+                            <div class="field-radiobutton col-6" v-for="cat in categorias" :key="cat.id">
+                                <RadioButton :id="`category${cat.id}`" name="category" :value="cat.id" v-model="product.categoria_id" />
+                                <label :for="`category${cat.id}`">{{ cat.nombre }}</label>
                             </div>
                         </div>
                     </div>
@@ -134,11 +143,13 @@
 import { ref, onMounted } from "vue";
 import { useToast } from 'primevue/usetoast';
 import productService from "./../../../service/ProductoService"
+import categoriaService from "./../../../service/CategoriaService"
 // declarar variables
 const toast = useToast();
 const titulo = ref("Gestión Productos");
 const products = ref(null);
 const productDialog = ref(false);
+const visibleImagen = ref(false)
 const deleteProductDialog = ref(false);
 const deleteProductsDialog = ref(false);
 const product = ref({});
@@ -147,15 +158,56 @@ const dt = ref(null);
 const filters = ref({});
 const submitted = ref(false);
 
+const categorias = ref([])
+
+const loading = ref(false);
+const totalRecords = ref(0);
+const lazyParams = ref({});
+
 // funciones o metodos
 onMounted(() => {
+    loading.value = true;
+
+    lazyParams.value = {
+        first: 0,
+        rows: dt.value.rows,
+        sortField: null,
+        sortOrder: null,
+        filters: filters.value
+    };
+
     listarProductos()
+    listarCategorias()
+    
 });
 
+
 const listarProductos = async () => {
-    const {data} = await productService.listar();
+    loading.value = true;
+
+    // { lazyEvent: JSON.stringify(lazyParams.value) }
+    let page = lazyParams.value.page + 1;
+    let limit = lazyParams.value.rows
+
+    const {data} = await productService.listar(page, limit);
     products.value = data.data
+
+    totalRecords.value = data.total;
+    loading.value = false;
+
 }
+const listarCategorias = async () => {
+    const {data} = await categoriaService.listar();
+    categorias.value = data
+   
+}
+
+
+const onPage = (event) => {
+    lazyParams.value = event;
+    listarProductos();
+};
+
 
 const formatCurrency = (value) => {
     return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -166,6 +218,12 @@ const openNew = () => {
     submitted.value = false;
     productDialog.value = true;
 };
+
+const openNewImagen = (prod) => {
+    product.value = prod;
+    visibleImagen.value = true;
+};
+
 
 const hideDialog = () => {
     productDialog.value = false;
@@ -189,6 +247,33 @@ const saveProduct = async () => {
         productDialog.value = false;
         product.value = {};
     }
+};
+
+const subirActualizacionImagen = async (event) => {
+    const file = event.files[0];
+    console.log(file)
+    
+    let formData = new FormData();
+    formData.append('imagen', file);
+
+    const {data} = await productService.actualizarImagen(product.value.id, formData);
+
+    product.value = {};
+    visibleImagen.value = false;
+
+    listarProductos();
+
+        
+    /*
+    const reader = new FileReader();
+    let blob = await fetch(file.objectURL).then((r) => r.blob()); //blob:url
+
+    reader.readAsDataURL(blob);
+
+    reader.onloadend = function () {
+        const base64data = reader.result;
+    };
+    */
 };
 
 // retornar variables o funciones
