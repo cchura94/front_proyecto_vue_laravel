@@ -71,7 +71,7 @@
                     <Column field="categoria_id" header="Categoria" :sortable="true" headerStyle="width:14%; min-width:10rem;">
                         <template #body="slotProps">
                             <span class="p-column-title">Categoria</span>
-                            {{ slotProps.data.categoria_id }}
+                            {{ slotProps.data.categoria.nombre }}
                         </template>
                     </Column>
                     <Column headerStyle="min-width:10rem;">
@@ -134,6 +134,20 @@
                     <template #footer>
                         <Button label="Cancelar" icon="pi pi-times" class="p-button-text" @click="hideDialog" />
                         <Button label="Guardar" icon="pi pi-check" class="p-button-text" @click="saveProduct" />
+                    </template>
+                </Dialog>
+
+                <Dialog v-model:visible="deleteProductDialog" :style="{ width: '450px' }" header="Confirmar Eliminación" :modal="true">
+                    <div class="flex align-items-center justify-content-center">
+                        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+                        <span v-if="product"
+                            >Esta seguro de eliminar el Producto: <b>{{ product.nombre }}</b
+                            >?</span
+                        >
+                    </div>
+                    <template #footer>
+                        <Button label="No" icon="pi pi-times" class="p-button-text" @click="deleteProductDialog = false" />
+                        <Button label="Si" icon="pi pi-check" class="p-button-text" @click="deleteProduct" />
                     </template>
                 </Dialog>
                 
@@ -233,9 +247,14 @@ const saveProduct = async () => {
     submitted.value = true;
     if (product.value.nombre && product.value.nombre.trim() && product.value.precio) {
         if (product.value.id) {
-            product.value.inventoryStatus = product.value.inventoryStatus.value ? product.value.inventoryStatus.value : product.value.inventoryStatus;
-            products.value[findIndexById(product.value.id)] = product.value;
-            toast.add({ severity: 'success', summary: 'Successful', detail: 'Product Updated', life: 3000 });
+
+            // product.value.inventoryStatus = product.value.inventoryStatus.value ? product.value.inventoryStatus.value : product.value.inventoryStatus;
+            // products.value[findIndexById(product.value.id)] = product.value;
+             const {data} = await productService.modificar(product.value, product.value.id)
+
+                listarProductos()
+            toast.add({ severity: 'success', summary: 'Editado Correctamente', detail: 'Producto Actualizado', life: 3000 });
+        
         } else {
             console.log(product.value)
             
@@ -247,6 +266,27 @@ const saveProduct = async () => {
         productDialog.value = false;
         product.value = {};
     }
+};
+
+const editProduct = (editProduct) => {
+    product.value = { ...editProduct };
+    console.log(product);
+    productDialog.value = true;
+};
+const confirmDeleteProduct = (editProduct) => {
+    product.value = editProduct;
+    deleteProductDialog.value = true;
+};
+
+const deleteProduct = async () => {
+    // products.value = products.value.filter((val) => val.id !== product.value.id);
+     const {data} = await productService.eliminar(product.value.id);
+
+     
+    listarProductos();
+    deleteProductDialog.value = false;
+    product.value = {};
+    toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Producto Eliminado', life: 3000 });
 };
 
 const subirActualizacionImagen = async (event) => {

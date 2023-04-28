@@ -1,6 +1,6 @@
 <template>
   <div class="card">
-    <h1>{{ titulo }}</h1>
+    <h1>{{ titulo }} {{ store.contador }} </h1>
   <Button label="Nueva Categoria" icon="pi pi-new" @click="visible = true" />
 
   <DataTable :value="categorias" tableStyle="min-width: 50rem">
@@ -36,6 +36,9 @@
 // importar
 import { ref, onMounted } from "vue";
 import categoriaService from "@/service/CategoriaService";
+import { useContadorStore } from '@/stores/contador'
+
+const store = useContadorStore()
 
 // declarar variables
 const blank_categoria = {

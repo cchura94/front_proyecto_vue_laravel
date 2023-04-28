@@ -10,6 +10,11 @@
             <h1>Cargando...</h1>
         </div>
 
+        <h3>{{ store.titulo }}: {{ store.contador }}</h3>
+        <button @click="store.aumentar">+</button>
+        <button>-</button>
+        {{ perfilStore }}
+
     </div>
 </template>
 
@@ -17,7 +22,17 @@
     // importar paquetes 
     import { ref, onMounted } from "vue"
     import authService from "@/service/AuthService"
+
+import { useContadorStore } from '@/stores/contador'
+import { usePerfilStore } from '@/stores/perfil'
+
+const store = useContadorStore()
+
+const perfilStore = usePerfilStore()
+
     // declarar variables
+
+
     const perfil = ref(null)
 
     onMounted(async () => {
