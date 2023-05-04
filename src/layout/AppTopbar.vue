@@ -28,9 +28,10 @@ const logoUrl = computed(() => {
 const onTopBarMenuButton = () => {
     topbarMenuActive.value = !topbarMenuActive.value;
 };
-const onSettingsClick = () => {
+const salir = () => {
     topbarMenuActive.value = false;
-    router.push('/documentation');
+    localStorage.removeItem("access_token")
+    router.push('/login');
 };
 const topbarMenuClasses = computed(() => {
     return {
@@ -89,9 +90,9 @@ const isOutsideClicked = (event) => {
                 <i class="pi pi-user"></i>
                 <span>Profile</span>
             </button>
-            <button @click="onSettingsClick()" class="p-link layout-topbar-button">
-                <i class="pi pi-cog"></i>
-                <span>Settings</span>
+            <button @click="salir()" class="p-link layout-topbar-button">
+                <i class="pi pi-power-off"></i>
+                <span>Salir</span>
             </button>
         </div>
     </div>

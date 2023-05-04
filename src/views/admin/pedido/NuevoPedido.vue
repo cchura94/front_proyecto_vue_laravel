@@ -104,7 +104,7 @@
             <h5>Cliente</h5>
             <span class="p-input-icon-left">
               <i class="pi pi-search" />
-              <InputText v-model="buscarClie" placeholder="Buscar" />
+              <InputText v-model="buscarClie" placeholder="Buscar" @keyup.enter="buscarCliente" />
               <Button
               label="Buscar"
               icon="pi pi-search"
@@ -251,10 +251,18 @@ const nuevoCliente = async () => {
 }
 
 const nuevoPedido = async () => {
+  try {
     let ped= {
         cliente_id: cliente.value.id,
         productos: carrito.value
     }
     const {data} = await pedidoService.guardar(ped);
+    cliente.value = {};
+    carrito.value = [];
+    
+  } catch (error) {
+      alert("Error al registrar Pedido") 
+  }   
+
 }
 </script>
