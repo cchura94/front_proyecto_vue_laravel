@@ -50,7 +50,9 @@
       </Column>
       <Column headerStyle="width:4rem">
         <template #body="slotProps">
+          <Button icon="pi pi-user" @click="enviarCorreoRecibo(slotProps.data.id)" v-if="slotProps.data.cliente.correo" />
           <Button icon="pi pi-print" @click="downloadPDF(slotProps.data)" />
+          
         </template>
       </Column>
 
@@ -124,6 +126,11 @@ const collapseAll = () => {
 const formatCurrency = (value) => {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 };
+
+const enviarCorreoRecibo = async (id) => {
+  const {data} = await pedidoService.enviarCorreo(id)
+  alert("recibo enviado");
+}
 
 const downloadPDF = (data) => {
 

@@ -22,5 +22,8 @@ export default {
     buscarCliente: (q) => {
         return http().get(`/cliente?q=${q}`)
     },
+    enviarCorreo: (id) => {
+        return http().get(`/pedido/${id}/enviar-email`);
+    }
     
 }
